@@ -11,7 +11,7 @@
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 0; }
         .page { display: none; }
         .page.active { display: block; }
-        .main-card { backdrop-filter: blur(10px); background: rgba(255,255,255,0.95); border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); max-width: 800px; margin: 0 auto; }
+        .main-card { backdrop-filter: blur(10px); background: rgba(255,255,255,0.95); border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); max-width: 600px; margin: 0 auto; }
         .card-header-custom { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
         .header-icon { font-size: 60px; margin-bottom: 15px; }
         .card-header-custom h2 { color: white; font-weight: 700; margin: 0; }
@@ -25,6 +25,12 @@
         .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-custom:hover { transform: translateY(-2px); }
+        .progress-bar-custom { background: #e2e8f0; height: 8px; border-radius: 10px; margin-bottom: 20px; }
+        .progress-fill { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; border-radius: 10px; transition: width 0.3s ease; }
+        .result-card { margin-bottom: 20px; padding: 25px; border-radius: 16px; text-align: center; }
+        .result-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .result-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .alert { border-radius: 12px; }
         .table { font-size: 14px; }
         .table th { background: #f8f9fa; }
         .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 8px; border: none; color: white; cursor: pointer; }
@@ -37,15 +43,11 @@
         .navbar-custom { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 30px; border-radius: 16px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         .navbar-custom h3 { color: white; margin: 0; font-size: 20px; font-weight: 700; }
         .btn-logout { background: rgba(255,255,255,0.2); color: white; border: 2px solid white; padding: 8px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-        .alert { border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-        .result-card { margin-bottom: 20px; padding: 25px; border-radius: 16px; text-align: center; }
-        .result-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-        .result-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
     </style>
 </head>
 <body>
 
-<!-- Bosh sahifa: User/Superuser tanlash -->
+<!-- Bosh sahifa -->
 <div id="homePage" class="page active">
     <div class="container">
         <div class="main-card">
@@ -56,13 +58,13 @@
             </div>
             <div class="card-body-custom">
                 <div class="mb-3">
-                    <button class="btn-custom btn-primary" onclick="showPage('userPage')">
-                        👤 Oddiy Foydalanuvchi
+                    <button class="btn-custom btn-primary" onclick="startDecisionTree()">
+                        👤 Kredit Ariza Berish
                     </button>
                 </div>
                 <div>
                     <button class="btn-custom btn-success" onclick="showPage('loginPage')">
-                        🔐 Superuser (Administrator)
+                        🔐 Administrator
                     </button>
                 </div>
             </div>
@@ -70,13 +72,13 @@
     </div>
 </div>
 
-<!-- Login sahifasi -->
+<!-- Superuser Login -->
 <div id="loginPage" class="page">
     <div class="container">
         <div class="main-card" style="max-width: 500px;">
             <div class="card-header-custom">
                 <div class="header-icon">🔐</div>
-                <h2>Superuser Login</h2>
+                <h2>Administrator Login</h2>
                 <p>Administrator panelga kirish</p>
             </div>
             <div class="card-body-custom">
@@ -103,129 +105,47 @@
     </div>
 </div>
 
-<!-- Oddiy user: Kredit formasi - Bosqich 1 (4 ta asosiy savol) -->
-<div id="userPage" class="page">
+<!-- Dinamik Savol-Javob Sahifasi -->
+<div id="questionPage" class="page">
     <div class="container">
         <div class="main-card">
             <div class="card-header-custom">
-                <div class="header-icon">💳</div>
-                <h2>Kredit Qaror Tizimi</h2>
-                <p>Asosiy ma'lumotlaringizni kiriting</p>
+                <div class="header-icon">📝</div>
+                <h2>Kredit Ariza</h2>
+                <p id="questionProgress">Savol 1</p>
             </div>
             <div class="card-body-custom">
-                <div id="userResult" style="display:none;"></div>
-
-                <!-- Bosqich indikatori -->
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary">Bosqich 1/2</span>
-                        <small class="text-muted">Asosiy ma'lumotlar</small>
-                    </div>
+                <div class="progress-bar-custom">
+                    <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
                 </div>
 
-                <form id="step1Form" onsubmit="checkStep1(event)">
-                    {% csrf_token %}
-                    <input type="hidden" id="step" name="step" value="1">
+                <div id="questionContent">
+                    <!-- Savollar dinamik yuklanydi -->
+                </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">💰 Daromad (so'm)</label>
-                        <input type="number" class="form-control" id="daromad" name="daromad" placeholder="Masalan: 15000" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">👤 Yosh</label>
-                        <input type="number" class="form-control" id="yosh" name="yosh" placeholder="Masalan: 30" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">📊 Kredit tarixchasi</label>
-                        <select class="form-select" id="kredit_tarixchasi" name="kredit_tarixchasi" required>
-                            <option value="" disabled selected>Tanlang</option>
-                            <option value="Yaxshi">Yaxshi</option>
-                            <option value="O'rtacha">O'rtacha</option>
-                            <option value="Yomon">Yomon</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">💵 Talab qilinadigan kredit miqdori (so'm)</label>
-                        <input type="number" class="form-control" id="kredit_miqdori" name="kredit_miqdori" placeholder="Masalan: 25000" required>
-                    </div>
-
-                    <div id="loadingStep1" style="display:none;" class="text-center mb-3">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Yuklanmoqda...</span>
-                        </div>
-                        <p class="mt-2">Qoidalar tekshirilmoqda...</p>
-                    </div>
-
-                    <div class="d-grid mb-3">
-                        <button type="submit" class="btn-custom btn-primary">➡️ Davom etish</button>
-                    </div>
-                    <div class="d-grid">
-                        <button type="button" class="btn-custom btn-secondary" onclick="showPage('homePage')">⬅ Bosh sahifaga</button>
-                    </div>
-                </form>
+                <div class="d-grid">
+                    <button type="button" class="btn-custom btn-secondary" onclick="showPage('homePage')">❌ Bekor qilish</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Oddiy user: Kredit formasi - Bosqich 2 (Qo'shimcha 3 ta savol) -->
-<div id="userPageStep2" class="page">
+<!-- Natija Sahifasi -->
+<div id="resultPage" class="page">
     <div class="container">
         <div class="main-card">
             <div class="card-header-custom">
-                <div class="header-icon">💳</div>
-                <h2>Kredit Qaror Tizimi</h2>
-                <p>Qo'shimcha ma'lumotlar kerak</p>
+                <div class="header-icon">✅</div>
+                <h2>Natija</h2>
+                <p>Arizangiz ko'rib chiqildi</p>
             </div>
             <div class="card-body-custom">
-                <div id="step2Result" style="display:none;"></div>
+                <div id="finalResult"></div>
 
-                <div class="alert alert-info mb-4" id="step2Alert">
-                    <strong>ℹ️ Diqqat!</strong> Qaror qabul qilish uchun qo'shimcha ma'lumotlar kerak.
+                <div class="d-grid mt-4">
+                    <button type="button" class="btn-custom btn-primary" onclick="showPage('homePage')">🏠 Bosh sahifaga</button>
                 </div>
-
-                <!-- Bosqich indikatori -->
-                <div class="mb-4" id="step2Indicator">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-success">Bosqich 2/2</span>
-                        <small class="text-muted">Qo'shimcha ma'lumotlar</small>
-                    </div>
-                </div>
-
-                <form method="post" action="" id="step2Form">
-                    {% csrf_token %}
-                    <input type="hidden" name="step" value="2">
-
-                    <!-- Avvalgi ma'lumotlarni saqlab qolish -->
-                    <input type="hidden" id="daromad2" name="daromad">
-                    <input type="hidden" id="yosh2" name="yosh">
-                    <input type="hidden" id="kredit_tarixchasi2" name="kredit_tarixchasi">
-                    <input type="hidden" id="kredit_miqdori2" name="kredit_miqdori">
-
-                    <div class="mb-4">
-                        <label class="form-label">💸 Mavjud qarzlar (so'm)</label>
-                        <input type="number" class="form-control" name="qarzlar" placeholder="Masalan: 1500" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">🏠 Garov mavjudmi?</label>
-                        <select class="form-select" name="garov" required>
-                            <option value="" disabled selected>Tanlang</option>
-                            <option value="Bor">Bor</option>
-                            <option value="Yo'q">Yo'q</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">💼 Ish staji (yil)</label>
-                        <input type="number" class="form-control" name="ish_staji" placeholder="Masalan: 5" required>
-                    </div>
-
-                    <div class="d-grid mb-3">
-                        <button type="submit" class="btn-custom btn-primary">✅ Natijani Tekshirish</button>
-                    </div>
-                    <div class="d-grid">
-                        <button type="button" class="btn-custom btn-secondary" onclick="showPage('userPage')">⬅ Ortga</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -233,7 +153,7 @@
 
 <!-- Admin Panel -->
 <div id="adminPage" class="page">
-    <div class="container">
+    <div class="container" style="max-width: 1200px;">
         <div class="navbar-custom">
             <h3>🎯 Admin Panel</h3>
             <button class="btn-logout" onclick="logout()">Chiqish</button>
@@ -290,114 +210,234 @@
 </div>
 
 <script>
-let currentUser = null;
-let step1Data = {}; // Bosqich 1 ma'lumotlarini saqlash
+let attributes = [];
+let attributeValues = {};
+let rules = [];
+let currentRuleIndex = 0;
+let currentQuestionIndex = 0;
+let userAnswers = {};
+let currentRule = null;
 
+// Sahifalarni ko'rsatish
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
 }
 
-// Bosqich 1 ni tekshirish
-async function checkStep1(e) {
-    e.preventDefault();
-
-    // Loading ko'rsatish
-    document.getElementById('loadingStep1').style.display = 'block';
-
-    // Ma'lumotlarni yig'ish
-    step1Data = {
-        daromad: document.getElementById('daromad').value,
-        yosh: document.getElementById('yosh').value,
-        kredit_tarixchasi: document.getElementById('kredit_tarixchasi').value,
-        kredit_miqdori: document.getElementById('kredit_miqdori').value
-    };
-
+// Qaror daraxtini boshlash
+async function startDecisionTree() {
     try {
-        // Serverni tekshirish
-        const formData = new FormData();
-        formData.append('step', '1');
-        formData.append('daromad', step1Data.daromad);
-        formData.append('yosh', step1Data.yosh);
-        formData.append('kredit_tarixchasi', step1Data.kredit_tarixchasi);
-        formData.append('kredit_miqdori', step1Data.kredit_miqdori);
+        const attrResponse = await fetch('/api/attributes/');
+        attributes = await attrResponse.json();
 
-        // CSRF token qo'shish
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        const response = await fetch('/check-step1/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-            },
-            body: formData
+        const valuesResponse = await fetch('/api/attribute-values/');
+        const values = await valuesResponse.json();
+        attributeValues = {};
+        values.forEach(v => {
+            attributeValues[v.key] = {
+                attribute_id: attributes.findIndex(a => a.nomi === v.attribute_name),
+                attribute_name: v.attribute_name,
+                qiymat: v.qiymat
+            };
         });
 
-        if (!response.ok) {
-            throw new Error('Server xatosi');
-        }
+        const rulesResponse = await fetch('/api/rules/');
+        rules = await rulesResponse.json();
 
-        const data = await response.json();
+        currentRuleIndex = 0;
+        currentQuestionIndex = 0;
+        userAnswers = {};
 
-        document.getElementById('loadingStep1').style.display = 'none';
-
-        if (data.found) {
-            // Natija topildi - ko'rsatish
-            showResultInStep1(data.natija);
-        } else {
-            // Natija topilmadi - 2-bosqichga o'tish
-            moveToStep2();
-        }
+        loadNextQuestion();
+        showPage('questionPage');
     } catch (error) {
-        document.getElementById('loadingStep1').style.display = 'none';
         console.error('Xatolik:', error);
-        alert('Xatolik yuz berdi: ' + error.message + '\n\nQaytadan urinib ko\'ring yoki 2-bosqichga o\'ting.');
-        // Xatolik bo'lsa ham 2-bosqichga o'tish imkoniyati
-        moveToStep2();
+        alert('Ma\'lumotlarni yuklashda xatolik yuz berdi');
     }
 }
 
-// Natijani 1-bosqichda ko'rsatish
-function showResultInStep1(natija) {
-    const resultDiv = document.getElementById('userResult');
+// Keyingi savolni yuklash
+function loadNextQuestion() {
+    if (currentRuleIndex >= rules.length) {
+        showFinalResult("Mos qoida topilmadi");
+        return;
+    }
 
-    const isPositive = natija.toLowerCase().includes('beriladi') ||
-                       natija.toLowerCase().includes('tasdiqlandi') ||
-                       natija.toLowerCase().includes('qabul') ||
-                       natija.toLowerCase().includes('ruxsat');
+    currentRule = rules[currentRuleIndex];
+    const conditions = currentRule.shartlar;
+
+    if (currentQuestionIndex >= conditions.length) {
+        checkCurrentRule();
+        return;
+    }
+
+    const [attrIndex, valueKey] = conditions[currentQuestionIndex];
+    const attribute = attributes[attrIndex];
+
+    const progress = ((currentQuestionIndex + 1) / conditions.length) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('questionProgress').textContent = `Qoida ${currentRuleIndex + 1} - Savol ${currentQuestionIndex + 1}/${conditions.length}`;
+
+    const questionHTML = createQuestion(attribute, attrIndex);
+    document.getElementById('questionContent').innerHTML = questionHTML;
+}
+
+// Savol yaratish
+function createQuestion(attribute, attrIndex) {
+    const inputType = getInputType(attribute.nomi);
+
+    let html = `<div class="mb-4"><label class="form-label">${getIcon(attribute.nomi)} ${attribute.nomi}</label>`;
+
+    if (inputType === 'select') {
+        html += `<select class="form-select" id="answer_${attrIndex}" required>
+                    <option value="" disabled selected>Tanlang</option>`;
+        if (attribute.nomi === 'Kredit tarixchasi') {
+            html += `<option value="Yaxshi">Yaxshi</option>
+                     <option value="O\'rtacha">O'rtacha</option>
+                     <option value="Yomon">Yomon</option>`;
+        } else if (attribute.nomi === 'Garov') {
+            html += `<option value="Bor">Bor</option>
+                     <option value="Yo\'q">Yo'q</option>`;
+        }
+        html += `</select>`;
+    } else {
+        const placeholder = getPlaceholder(attribute.nomi);
+        html += `<input type="number" class="form-control" id="answer_${attrIndex}" placeholder="${placeholder}" required>`;
+    }
+
+    html += `</div>
+             <div class="d-grid">
+                <button type="button" class="btn-custom btn-primary" onclick="submitAnswer(${attrIndex})">➡️ Davom etish</button>
+             </div>`;
+
+    return html;
+}
+
+// Javobni yuborish
+function submitAnswer(attrIndex) {
+    const answer = document.getElementById(`answer_${attrIndex}`).value;
+    if (!answer) {
+        alert('Iltimos, javob kiriting');
+        return;
+    }
+    userAnswers[attrIndex] = answer;
+    currentQuestionIndex++;
+    loadNextQuestion();
+}
+
+// Hozirgi qoidani tekshirish
+function checkCurrentRule() {
+    const conditions = currentRule.shartlar;
+    let allMatch = true;
+
+    for (let i = 0; i < conditions.length; i++) {
+        const [attrIndex, valueKey] = conditions[i];
+        const userAnswer = userAnswers[attrIndex];
+        const expectedValue = attributeValues[valueKey].qiymat;
+        if (!qiymatMos(userAnswer, expectedValue)) {
+            allMatch = false;
+            break;
+        }
+    }
+
+    if (allMatch) {
+        const resultKey = currentRule.natija;
+        const result = attributeValues[resultKey].qiymat;
+        saveAndShowResult(result);
+    } else {
+        currentRuleIndex++;
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        loadNextQuestion();
+    }
+}
+
+// Qiymatni moslashtirish
+function qiymatMos(kiritilgan, shart) {
+    try {
+        const kiritilganInt = parseInt(kiritilgan);
+        if (shart.startsWith(">=")) return kiritilganInt >= parseInt(shart.slice(2));
+        if (shart.startsWith("<=")) return kiritilganInt <= parseInt(shart.slice(2));
+        if (shart.startsWith(">")) return kiritilganInt > parseInt(shart.slice(1));
+        if (shart.startsWith("<")) return kiritilganInt < parseInt(shart.slice(1));
+        if (shart.startsWith("!=")) return String(kiritilgan) !== shart.slice(2);
+        return String(kiritilgan) === shart;
+    } catch {
+        return String(kiritilgan) === shart;
+    }
+}
+
+// Natijani saqlash va ko'rsatish
+async function saveAndShowResult(result) {
+    try {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        Object.keys(userAnswers).forEach(key => {
+            const attrName = attributes[key].nomi;
+            formData.append(attrName, userAnswers[key]);
+        });
+        formData.append('natija', result);
+
+        await fetch('/save-application/', { method: 'POST', body: formData });
+        showFinalResult(result);
+    } catch (error) {
+        console.error('Xatolik:', error);
+        showFinalResult(result);
+    }
+}
+
+// Yakuniy natijani ko'rsatish
+function showFinalResult(result) {
+    const isPositive = result.toLowerCase().includes('beriladi') ||
+                       result.toLowerCase().includes('tasdiqlandi') ||
+                       result.toLowerCase().includes('qabul') ||
+                       result.toLowerCase().includes('ruxsat');
 
     const resultClass = isPositive ? 'result-success' : 'result-danger';
     const icon = isPositive ? '✅' : '❌';
 
-    resultDiv.innerHTML = `
+    document.getElementById('finalResult').innerHTML = `
         <div class="result-card ${resultClass}">
-            <div style="font-size: 48px; margin-bottom: 15px;">${icon}</div>
-            <h3 class="fw-bold mb-2">Natija</h3>
-            <p class="mb-0 fs-5">${natija}</p>
-        </div>
-        <div class="d-grid mt-3">
-            <button type="button" class="btn-custom btn-secondary" onclick="goToHome()">🏠 Bosh sahifaga qaytish</button>
+            <div style="font-size: 64px; margin-bottom: 20px;">${icon}</div>
+            <h3 class="fw-bold mb-3">Arizangiz Ko'rib Chiqildi</h3>
+            <p class="mb-0 fs-4">${result}</p>
         </div>
     `;
-    resultDiv.style.display = 'block';
 
-    // Formani yashirish
-    document.getElementById('step1Form').style.display = 'none';
+    showPage('resultPage');
 }
 
-// 2-bosqichga o'tish
-function moveToStep2() {
-    // Avvalgi ma'lumotlarni 2-bosqichga o'tkazish
-    document.getElementById('daromad2').value = step1Data.daromad;
-    document.getElementById('yosh2').value = step1Data.yosh;
-    document.getElementById('kredit_tarixchasi2').value = step1Data.kredit_tarixchasi;
-    document.getElementById('kredit_miqdori2').value = step1Data.kredit_miqdori;
-
-    // 2-bosqichni ko'rsatish
-    showPage('userPageStep2');
+// Yordamchi funksiyalar
+function getInputType(attributeName) {
+    if (attributeName === 'Kredit tarixchasi' || attributeName === 'Garov') return 'select';
+    return 'number';
 }
 
-// Login funksiyasi
+function getIcon(attributeName) {
+    const icons = {
+        'Daromad': '💰',
+        'Yosh': '👤',
+        'Kredit tarixchasi': '📊',
+        'Qarzlar': '💸',
+        'Kredit miqdori': '💵',
+        'Garov': '🏠',
+        'Ish staji': '💼'
+    };
+    return icons[attributeName] || '📋';
+}
+
+function getPlaceholder(attributeName) {
+    const placeholders = {
+        'Daromad': 'Masalan: 15000',
+        'Yosh': 'Masalan: 30',
+        'Qarzlar': 'Masalan: 5000',
+        'Kredit miqdori': 'Masalan: 25000',
+        'Ish staji': 'Masalan: 5'
+    };
+    return placeholders[attributeName] || '';
+}
+
+// Admin funksiyalari
 async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('username').value;
@@ -407,34 +447,29 @@ async function handleLogin(e) {
         const formData = new FormData();
         formData.append('username', username);
         formData.append('password', password);
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-        const response = await fetch('/login/', {
-            method: 'POST',
-            body: formData
-        });
+        const response = await fetch('/login/', { method: 'POST', body: formData });
 
         if (response.ok) {
-            currentUser = username;
             showPage('adminPage');
             loadStats();
         } else {
-            document.getElementById('loginError').textContent = 'Login yoki parol noto\'g\'ri!';
-            document.getElementById('loginError').style.display = 'block';
+            const loginError = document.getElementById('loginError');
+            loginError.textContent = 'Login yoki parol noto\'g\'ri!';
+            loginError.style.display = 'block';
         }
     } catch (error) {
-        document.getElementById('loginError').textContent = 'Xatolik yuz berdi!';
-        document.getElementById('loginError').style.display = 'block';
+        const loginError = document.getElementById('loginError');
+        loginError.textContent = 'Xatolik yuz berdi!';
+        loginError.style.display = 'block';
     }
 }
 
 function logout() {
-    currentUser = null;
-    showPage('homePage');
     window.location.href = '/logout/';
 }
 
-// Statistikani yuklash
 async function loadStats() {
     try {
         const response = await fetch('/api/stats/');
@@ -448,140 +483,95 @@ async function loadStats() {
     }
 }
 
-// Atributlarni yuklash
+// CRUD funksiyalar (atributlar, qiymatlar, qoidalar, arizalar)
 async function loadAttributes() {
     try {
         const response = await fetch('/api/attributes/');
         const data = await response.json();
-
-        let html = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>🏷️ Atributlar</h4>
-                <button class="btn btn-success btn-sm" onclick="showAddAttribute()">➕ Qo'shish</button>
-            </div>
-            <table class="table table-hover">
-                <thead><tr><th>ID</th><th>Nomi</th><th>Amallar</th></tr></thead>
-                <tbody>`;
-
+        let html = `<div class="mb-3"><h4>🏷️ Atributlar</h4></div>
+                    <table class="table table-hover"><thead><tr><th>ID</th><th>Nomi</th><th>Amallar</th></tr></thead><tbody>`;
         data.forEach(item => {
             html += `<tr>
-                <td>${item.id}</td>
-                <td><strong>${item.nomi}</strong></td>
-                <td>
-                    <button class="btn-sm btn-edit" onclick="editAttribute(${item.id})">✏️ Tahrirlash</button>
-                    <button class="btn-sm btn-delete" onclick="deleteAttribute(${item.id})">🗑️ O'chirish</button>
-                </td>
-            </tr>`;
+                        <td>${item.id}</td>
+                        <td><strong>${item.nomi}</strong></td>
+                        <td><button class="btn-sm btn-delete" onclick="deleteAttribute(${item.id})">🗑️ O'chirish</button></td>
+                     </tr>`;
         });
-
         html += '</tbody></table>';
         document.getElementById('adminContent').innerHTML = html;
     } catch (error) {
-        console.error('Atributlar yuklanmadi:', error);
+        console.error('Xatolik:', error);
     }
 }
 
-// Qiymatlarni yuklash
 async function loadAttributeValues() {
     try {
         const response = await fetch('/api/attribute-values/');
         const data = await response.json();
-
-        let html = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>💎 Atribut Qiymatlari</h4>
-                <button class="btn btn-success btn-sm" onclick="showAddValue()">➕ Qo'shish</button>
-            </div>
-            <table class="table table-hover">
-                <thead><tr><th>ID</th><th>Atribut</th><th>Qiymat</th><th>Key</th><th>Amallar</th></tr></thead>
-                <tbody>`;
-
+        let html = `<div class="mb-3"><h4>💎 Atribut Qiymatlari</h4></div>
+                    <table class="table table-hover"><thead><tr><th>ID</th><th>Atribut</th><th>Qiymat</th><th>Key</th><th>Amallar</th></tr></thead><tbody>`;
         data.forEach(item => {
             html += `<tr>
-                <td>${item.id}</td>
-                <td><strong>${item.attribute_name}</strong></td>
-                <td>${item.qiymat}</td>
-                <td><code>${item.key}</code></td>
-                <td>
-                    <button class="btn-sm btn-edit" onclick="editValue(${item.id})">✏️</button>
-                    <button class="btn-sm btn-delete" onclick="deleteValue(${item.id})">🗑️</button>
-                </td>
-            </tr>`;
+                        <td>${item.id}</td>
+                        <td><strong>${item.attribute_name}</strong></td>
+                        <td>${item.qiymat}</td>
+                        <td><code>${item.key}</code></td>
+                        <td><button class="btn-sm btn-delete" onclick="deleteValue(${item.id})">🗑️</button></td>
+                     </tr>`;
         });
-
         html += '</tbody></table>';
         document.getElementById('adminContent').innerHTML = html;
     } catch (error) {
-        console.error('Qiymatlar yuklanmadi:', error);
+        console.error('Xatolik:', error);
     }
 }
 
-// Qoidalarni yuklash
 async function loadRules() {
     try {
         const response = await fetch('/api/rules/');
         const data = await response.json();
-
-        let html = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>📏 Qoidalar</h4>
-                <button class="btn btn-success btn-sm" onclick="showAddRule()">➕ Qo'shish</button>
-            </div>
-            <table class="table table-hover">
-                <thead><tr><th>ID</th><th>Shartlar</th><th>Natija</th><th>Amallar</th></tr></thead>
-                <tbody>`;
-
+        let html = `<div class="mb-3"><h4>📏 Qoidalar</h4></div>
+                    <table class="table table-hover"><thead><tr><th>ID</th><th>Shartlar</th><th>Natija</th><th>Amallar</th></tr></thead><tbody>`;
         data.forEach(item => {
             html += `<tr>
-                <td>${item.id}</td>
-                <td><code>${JSON.stringify(item.shartlar)}</code></td>
-                <td><strong>${item.natija}</strong></td>
-                <td>
-                    <button class="btn-sm btn-edit" onclick="editRule(${item.id})">✏️</button>
-                    <button class="btn-sm btn-delete" onclick="deleteRule(${item.id})">🗑️</button>
-                </td>
-            </tr>`;
+                        <td>${item.id}</td>
+                        <td><code>${JSON.stringify(item.shartlar)}</code></td>
+                        <td><strong>${item.natija}</strong></td>
+                        <td><button class="btn-sm btn-delete" onclick="deleteRule(${item.id})">🗑️</button></td>
+                     </tr>`;
         });
-
         html += '</tbody></table>';
         document.getElementById('adminContent').innerHTML = html;
     } catch (error) {
-        console.error('Qoidalar yuklanmadi:', error);
+        console.error('Xatolik:', error);
     }
 }
 
-// Arizalarni yuklash
 async function loadApplicants() {
     try {
         const response = await fetch('/api/applicants/');
         const data = await response.json();
-
-        let html = `
-            <div class="mb-3"><h4>📋 Arizalar</h4></div>
-            <div class="table-responsive">
-            <table class="table table-hover table-sm">
-                <thead><tr><th>ID</th><th>Daromad</th><th>Yosh</th><th>Kredit tarixchasi</th><th>Qarzlar</th><th>Kredit miqdori</th><th>Garov</th><th>Ish staji</th><th>Natija</th><th>Amal</th></tr></thead>
-                <tbody>`;
-
+        let html = `<div class="mb-3"><h4>📋 Arizalar</h4></div>
+                    <div class="table-responsive"><table class="table table-hover table-sm">
+                    <thead><tr><th>ID</th><th>Daromad</th><th>Yosh</th><th>Kredit tarixchasi</th><th>Qarzlar</th><th>Kredit miqdori</th><th>Garov</th><th>Ish staji</th><th>Natija</th><th>Amal</th></tr></thead><tbody>`;
         data.forEach(item => {
             html += `<tr>
-                <td>${item.id}</td>
-                <td>${item.daromad}</td>
-                <td>${item.yosh}</td>
-                <td>${item.kredit_tarixchasi}</td>
-                <td>${item.qarzlar || '-'}</td>
-                <td>${item.kredit_miqdori}</td>
-                <td>${item.garov || '-'}</td>
-                <td>${item.ish_staji || '-'}</td>
-                <td><strong>${item.natija}</strong></td>
-                <td><button class="btn-sm btn-delete" onclick="deleteApplicant(${item.id})">🗑️</button></td>
-            </tr>`;
+                        <td>${item.id}</td>
+                        <td>${item.daromad || '-'}</td>
+                        <td>${item.yosh || '-'}</td>
+                        <td>${item.kredit_tarixchasi || '-'}</td>
+                        <td>${item.qarzlar || '-'}</td>
+                        <td>${item.kredit_miqdori || '-'}</td>
+                        <td>${item.garov || '-'}</td>
+                        <td>${item.ish_staji || '-'}</td>
+                        <td><strong>${item.natija}</strong></td>
+                        <td><button class="btn-sm btn-delete" onclick="deleteApplicant(${item.id})">🗑️</button></td>
+                     </tr>`;
         });
-
         html += '</tbody></table></div>';
         document.getElementById('adminContent').innerHTML = html;
     } catch (error) {
-        console.error('Arizalar yuklanmadi:', error);
+        console.error('Xatolik:', error);
     }
 }
 
@@ -613,78 +603,4 @@ async function deleteApplicant(id) {
         loadApplicants();
     }
 }
-
-// Natijani ko'rsatish (agar POST orqali yuborilgan bo'lsa - 2-bosqichdan)
-{% if natija %}
-window.onload = function() {
-    const step = '{{ request.POST.step }}';
-
-    if (step === '2') {
-        // 2-bosqichda natija
-        showPage('userPageStep2');
-        const resultDiv = document.getElementById('step2Result');
-        const natija = '{{ natija }}';
-
-        const isPositive = natija.toLowerCase().includes('beriladi') ||
-                           natija.toLowerCase().includes('tasdiqlandi') ||
-                           natija.toLowerCase().includes('qabul') ||
-                           natija.toLowerCase().includes('ruxsat');
-
-        const resultClass = isPositive ? 'result-success' : 'result-danger';
-        const icon = isPositive ? '✅' : '❌';
-
-        resultDiv.innerHTML = `
-            <div class="result-card ${resultClass}">
-                <div style="font-size: 48px; margin-bottom: 15px;">${icon}</div>
-                <h3 class="fw-bold mb-2">Natija</h3>
-                <p class="mb-0 fs-5">${natija}</p>
-            </div>
-            <div class="d-grid mt-3">
-                <button type="button" class="btn-custom btn-secondary" onclick="goToHome()">🏠 Bosh sahifaga qaytish</button>
-            </div>
-        `;
-        resultDiv.style.display = 'block';
-
-        // Formani va alert'ni yashirish
-        document.getElementById('step2Form').style.display = 'none';
-        document.getElementById('step2Alert').style.display = 'none';
-        document.getElementById('step2Indicator').style.display = 'none';
-    } else {
-        // 1-bosqichda natija
-        showPage('userPage');
-        const resultDiv = document.getElementById('userResult');
-        const natija = '{{ natija }}';
-
-        const isPositive = natija.toLowerCase().includes('beriladi') ||
-                           natija.toLowerCase().includes('tasdiqlandi') ||
-                           natija.toLowerCase().includes('qabul') ||
-                           natija.toLowerCase().includes('ruxsat');
-
-        const resultClass = isPositive ? 'result-success' : 'result-danger';
-        const icon = isPositive ? '✅' : '❌';
-
-        resultDiv.innerHTML = `
-            <div class="result-card ${resultClass}">
-                <div style="font-size: 48px; margin-bottom: 15px;">${icon}</div>
-                <h3 class="fw-bold mb-2">Natija</h3>
-                <p class="mb-0 fs-5">${natija}</p>
-            </div>
-            <div class="d-grid mt-3">
-                <button type="button" class="btn-custom btn-secondary" onclick="goToHome()">🏠 Bosh sahifaga qaytish</button>
-            </div>
-        `;
-        resultDiv.style.display = 'block';
-        document.getElementById('step1Form').style.display = 'none';
-    }
-}
-{% endif %}
-
-// Bosh sahifaga qaytish funksiyasi
-function goToHome() {
-    // Sahifani qayta yuklash (formalarni tozalash uchun)
-    window.location.href = '/';
-}
 </script>
-
-</body>
-</html>
